@@ -9,17 +9,20 @@
  * @wordpress-plugin
  * Plugin Name:       JW Eng Customer Images
  * Plugin URI:        http://example.com/jw-eng-customer-images-uri/
- * Description:       This is a short description of what the plugin does. It's displayed in the WordPress admin area.
+ * Description:       Quản lý danh mục, dịch vụ con và hình ảnh khách hàng của Website jwhospital.vn.
  * Version:           1.0.0
- * Author:            Your Name or Your Company
- * Author URI:        http://example.com/
+ * Author:            JW Hospital
+ * Author URI:        https://jwhospital.vn
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       jw-eng-customer-images
  * Domain Path:       /languages
+ * Requires at least: 6.7
+ * Requires PHP:      8.1
  */
 
 // If this file is called directly, abort.
+defined( 'ABSPATH' ) || exit;
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
@@ -30,7 +33,7 @@ if ( ! defined( 'WPINC' ) ) {
  * @return \JW_Eng_Customer_Images\Includes\Requirements_Checker
  * @since 1.0.0
  */
-function plugin_requirements_checker() {
+function jw_eng_customer_images_requirements_checker() {
 	static $requirements_checker = null;
 
 	if ( null === $requirements_checker ) {
@@ -42,6 +45,13 @@ function plugin_requirements_checker() {
 	return $requirements_checker;
 }
 
+// Giữ callable của boilerplate; bootstrap nội bộ dùng prefix riêng để tránh xung đột.
+if ( ! function_exists( 'plugin_requirements_checker' ) ) {
+	function plugin_requirements_checker() {
+		return jw_eng_customer_images_requirements_checker();
+	}
+}
+
 /**
  * Begins execution of the plugin.
  *
@@ -50,8 +60,8 @@ function plugin_requirements_checker() {
 function run_jw_eng_customer_images() {
 
 	// If Plugins Requirements are not met.
-	if ( ! plugin_requirements_checker()->requirements_met() ) {
-		add_action( 'admin_notices', array( plugin_requirements_checker(), 'show_requirements_errors' ) );
+	if ( ! jw_eng_customer_images_requirements_checker()->requirements_met() ) {
+		add_action( 'admin_notices', array( jw_eng_customer_images_requirements_checker(), 'show_requirements_errors' ) );
 
 		// Deactivate plugin immediately if requirements are not met.
 		require_once( ABSPATH . 'wp-admin/includes/plugin.php' );

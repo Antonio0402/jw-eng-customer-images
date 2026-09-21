@@ -1,6 +1,8 @@
 <?php
 namespace JW_Eng_Customer_Images\App;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Fired during plugin uninstallation.
  *
@@ -21,6 +23,7 @@ class Uninstaller {
 	 * @since    1.0.0
 	 */
 	public function uninstall() {
+		Database::uninstall();
 	}
 
 }

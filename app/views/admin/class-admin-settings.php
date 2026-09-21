@@ -1,6 +1,8 @@
 <?php
 namespace JW_Eng_Customer_Images\App\Views\Admin;
 
+defined( 'ABSPATH' ) || exit;
+
 use JW_Eng_Customer_Images\Core\View;
 use JW_Eng_Customer_Images as JW_Eng_Customer_Images;
 
@@ -13,6 +15,9 @@ if ( ! class_exists( __NAMESPACE__ . '\\' . 'Admin_Settings' ) ) {
 	 * @subpackage JW_Eng_Customer_Images/views/admin
 	 */
 	class Admin_Settings extends View {
+		public function render( array $args ): void {
+			$this->admin_settings_page( $args );
+		}
 		/**
 		 * Prints Settings Page.
 		 *
@@ -21,8 +26,14 @@ if ( ! class_exists( __NAMESPACE__ . '\\' . 'Admin_Settings' ) ) {
 		 * @since 1.0.0
 		 */
 		public function admin_settings_page( $args = [] ) {
+		/**
+		 * Render giao diện quản trị Category, Subcategory và Images.
+		 *
+		 * @param array $args Contract dữ liệu do controller cung cấp.
+		 * @return void
+		 */
 			echo $this->render_template(
-				'admin/page-settings/page-settings.php',
+				'admin/customer-images.php',
 				$args
 			); // WPCS: XSS OK.
 		}

@@ -3,6 +3,10 @@ namespace JW_Eng_Customer_Images\App\Models\Admin;
 
 use JW_Eng_Customer_Images\App\Models\Settings as Settings_Model;
 use JW_Eng_Customer_Images\App\Models\Admin\Base_Model;
+use JW_Eng_Customer_Images\App\Repository;
+use JW_Eng_Customer_Images\App\Database;
+
+defined( 'ABSPATH' ) || exit;
 
 if ( ! class_exists( __NAMESPACE__ . '\\' . 'Admin_Settings' ) ) {
 	/**
@@ -88,6 +92,67 @@ if ( ! class_exists( __NAMESPACE__ . '\\' . 'Admin_Settings' ) ) {
 		 */
 		public function get_setting( $setting_name ) {
 			return Settings_Model::get_setting( $setting_name );
+		}
+
+		/** Ghi dữ liệu qua repository, giữ nguyên các method Settings của boilerplate. */
+		public function mutate( string $operation, string $entity, array $input, int $id ) {
+			$repository = new Repository();
+			return 'delete' === $operation ? $repository->delete( $entity, $id ) : $repository->save( $entity, $input, $id );
+		}
+
+		public function screen( string $entity, int $category, int $subcategory, int $page, int $id ) {
+			$repository = new Repository();
+			$state = array(
+				'categories' => $repository->listing( 'category', 0, 0, 1, null ),
+				'subcategories' => $repository->listing( 'subcategory', 0, 0, 1, null ),
+				'listing' => $repository->listing( $entity, $category, $subcategory, $page ),
+				'edit' => 0 < $id ? $repository->get( $entity, $id ) : null,
+			);
+			foreach ( $state as $value ) {
+				if ( is_wp_error( $value ) ) {
+					return $value;
+				}
+			}
+			return $state;
+		}
+		
+		/**
+		 * Chuẩn bị contract dữ liệu cho template theo màn hình.
+		 *
+		 * @param string $screen  Màn hình hiện tại.
+		 * @param array  $request Query string đã unslash.
+		 * @return array<string, mixed>
+		 */
+		public function get_screen_data( string $screen, array $request ): array {
+			$entities = array( 'categories' => 'category', 'subcategories' => 'subcategory', 'images' => 'image' );
+			$entity = $entities[ $screen ];
+			$category = Repository::integer( $request['category_id'] ?? '0' ) ?? 0;
+			$subcategory = Repository::integer( $request['subcategory_id'] ?? '0' ) ?? 0;
+			$page = max( 1, Repository::integer( $request['paged'] ?? '1' ) ?? 1 );
+			$id = Repository::integer( $request['edit'] ?? '0' ) ?? 0;
+			$notice = null;
+			$old = null;
+			$token = $request['result'] ?? '';
+			if ( is_string( $token ) && preg_match( '/^[a-f0-9]{32}$/D', $token ) ) {
+				$key = 'jw_eci_' . get_current_user_id() . '_' . $token;
+				$flash = get_transient( $key );
+				if ( is_array( $flash ) && $entity === $flash['entity'] ) {
+					$notice = $flash['notice'];
+					$old = $flash['input'];
+					delete_transient( $key );
+				}
+			}
+			$ready = Database::VERSION === get_option( Database::OPTION );
+			$state = $ready ? $this->screen( $entity, $category, $subcategory, $page, $id ) : array();
+			if ( is_wp_error( $state ) ) {
+				$notice = array( 'type' => 'error', 'message' => $state->get_error_message() );
+				$ready = false;
+				$state = array();
+			}
+			return array_merge( $state, array(
+				'entity' => $entity, 'category_filter' => $category, 'subcategory_filter' => $subcategory,
+				'edit_id' => $id, 'notice' => $notice, 'old' => $old, 'ready' => $ready,
+			) );
 		}
 
 	}

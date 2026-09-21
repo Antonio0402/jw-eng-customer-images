@@ -7,9 +7,9 @@
 
 return [
 
-	'min_php_version' => '5.6', // Minimum PHP Version.
+	'min_php_version' => '8.1', // Minimum PHP Version.
 
-	'min_wp_version' => '4.8',  // Minimum WordPress Version.
+	'min_wp_version' => '6.7',  // Minimum WordPress Version.
 
 	'is_multisite_compatible' => false, // True if our plugin is Multisite Compatible.
 
