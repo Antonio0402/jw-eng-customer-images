@@ -198,6 +198,33 @@ check( 'error' === $flash['notice']['type'] && '-9' === $flash['input']['positio
 check( '0' === $repo->get( 'category', $posted_id )['position'], 'Invalid POST leaves row intact' );
 $flash = post_action( $controller, array( 'operation' => 'delete', 'entity' => 'category', 'id' => (string) $posted_id ) );
 check( 'success' === $flash['notice']['type'] && null === $repo->get( 'category', $posted_id ), 'POST delete success' );
+// Luồng thêm nhiều ảnh qua POST và xóa lô chỉ tác động các bản ghi được chọn.
+$before_ids = array_column( jw_eng_customer_images_get_images( $s2 )['items'], 'id' );
+$flash = post_action( $controller, array( 'operation' => 'save', 'entity' => 'image', 'id' => '0', 'subcategory_id' => (string) $s2, 'image_ids' => array_merge( $attachments, array( $attachments[0] ) ) ) );
+check( 'success' === $flash['notice']['type'] && str_contains( $flash['notice']['message'], '3' ), 'POST multiple images deduplicated and counted' );
+$batch_ids = array_values( array_diff( array_column( jw_eng_customer_images_get_images( $s2 )['items'], 'id' ), $before_ids ) );
+check( 3 === count( $batch_ids ), 'POST multiple creates separate records' );
+foreach ( array( null, array(), '1', array( -1 ), array( array() ), array( '1.5' ), array_fill( 0, 101, 1 ) ) as $invalid_ids ) {
+	check( is_wp_error( $repo->bulk_delete_images( $invalid_ids ) ), 'Invalid bulk selection rejected' );
+}
+check( is_wp_error( $repo->bulk_delete_images( array( $batch_ids[0], 9999999 ) ) ), 'Stale bulk selection rejected' );
+check( null !== jw_eng_customer_images_get_image( $batch_ids[0] ), 'Stale selection does not partially delete' );
+$wpdb->query( "CREATE TRIGGER jw_eci_delete_fail BEFORE DELETE ON `{$t['image']}` FOR EACH ROW BEGIN IF OLD.id = {$batch_ids[1]} THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'isolated delete test'; END IF; END" );
+check( '' === $wpdb->last_error, 'Create delete fault trigger' );
+check( is_wp_error( $repo->bulk_delete_images( array( $batch_ids[0], $batch_ids[1] ) ) ), 'Bulk SQL failure returned' );
+check( null !== jw_eng_customer_images_get_image( $batch_ids[0] ) && null !== jw_eng_customer_images_get_image( $batch_ids[1] ), 'Bulk SQL failure rolled back' );
+$wpdb->query( 'DROP TRIGGER jw_eci_delete_fail' );
+$_POST = array( 'operation' => 'bulk_delete', 'entity' => 'image', 'id' => '0', 'image_record_ids' => $batch_ids, '_wpnonce' => wp_create_nonce( Admin_Settings::NONCE_ACTION . '_delete_image_0' ) );
+$denied = false;
+try { $controller->handle_post(); } catch ( RuntimeException $error ) { $denied = ! $error instanceof Test_Redirect; }
+check( $denied, 'Bulk requires its own nonce' );
+$flash = post_action( $controller, array( 'operation' => 'bulk_delete', 'entity' => 'image', 'id' => '0', 'image_record_ids' => array( $batch_ids[0], $batch_ids[1], $batch_ids[0] ) ) );
+check( 'success' === $flash['notice']['type'] && str_contains( $flash['notice']['message'], '2' ), 'POST bulk delete counts unique records' );
+check( null === jw_eng_customer_images_get_image( $batch_ids[0] ) && null === jw_eng_customer_images_get_image( $batch_ids[1] ), 'Selected records deleted' );
+check( null !== jw_eng_customer_images_get_image( $batch_ids[2] ) && null !== jw_eng_customer_images_get_image( $images[0] ), 'Unselected records preserved' );
+check( 'attachment' === get_post_type( $attachments[0] ) && 'attachment' === get_post_type( $attachments[1] ), 'Bulk delete preserves attachments' );
+$flash = post_action( $controller, array( 'operation' => 'bulk_delete', 'entity' => 'image', 'id' => '0' ) );
+check( 'error' === $flash['notice']['type'], 'Empty bulk POST reports error' );
 remove_filter( 'wp_redirect', $capture_redirect );
 
 // Phiên thứ hai phải đợi khóa cha; sau khi xóa commit, phiên đó thấy cha đã mất.

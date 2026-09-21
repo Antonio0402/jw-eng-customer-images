@@ -237,6 +237,37 @@ class Repository {
 		} );
 	}
 
+	/** Xóa nguyên lô bản ghi ảnh, không tác động attachment hoặc danh mục. */
+	public function bulk_delete_images( $values ) {
+		if ( ! is_array( $values ) || ! $values || 100 < count( $values ) ) {
+			return new \WP_Error( 'invalid_selection', __( 'Chọn từ 1 đến 100 bản ghi ảnh để xóa.', 'jw-eng-customer-images' ) );
+		}
+		$ids = array();
+		foreach ( $values as $value ) {
+			$id = self::integer( $value );
+			if ( ! $id ) {
+				return new \WP_Error( 'invalid_selection', __( 'Danh sách ảnh được chọn không hợp lệ.', 'jw-eng-customer-images' ) );
+			}
+			$ids[] = $id;
+		}
+		$ids = array_values( array_unique( $ids ) );
+		sort( $ids, SORT_NUMERIC );
+		return $this->transaction( function () use ( $ids ) {
+			global $wpdb;
+			$table = Database::tables()['image'];
+			$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
+			$rows = $this->read( $wpdb->prepare( "SELECT id FROM `$table` WHERE id IN ($placeholders) ORDER BY id FOR UPDATE", $ids ) );
+			if ( is_wp_error( $rows ) ) {
+				return $rows;
+			}
+			if ( count( $rows ) !== count( $ids ) ) {
+				return new \WP_Error( 'selection_changed', __( 'Một số ảnh không còn tồn tại. Chưa xóa ảnh nào; vui lòng tải lại danh sách và chọn lại.', 'jw-eng-customer-images' ) );
+			}
+			$deleted = $wpdb->query( $wpdb->prepare( "DELETE FROM `$table` WHERE id IN ($placeholders)", $ids ) );
+			return count( $ids ) === $deleted ? $deleted : Database::error();
+		} );
+	}
+
 	private function lock( string $entity, int $id ) {
 		global $wpdb;
 		$t    = Database::tables();

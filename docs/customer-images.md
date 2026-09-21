@@ -6,7 +6,9 @@ Kích hoạt plugin trong WordPress 6.7+, PHP 8.1+, single-site để tạo ba b
 
 - **Categories:** tên, vị trí, banner khuyến mãi theo tháng, banner đăng ký, icon và icon hover. Bốn ảnh không bắt buộc; banner tháng được thay thủ công.
 - **Subcategories:** Category cha, tên, vị trí, mô tả văn bản thuần và ảnh đại diện; tất cả bắt buộc.
-- **Images:** ảnh khách hàng đã ghép trước–sau, thuộc một Subcategory. Chọn nhiều attachment khi thêm; mỗi ảnh tạo một bản ghi. Sửa để thay ảnh/chuyển Subcategory; xóa từng bản ghi.
+- **Images:** ảnh khách hàng đã ghép trước–sau, thuộc một Subcategory. Nút **Chọn/upload nhiều ảnh** mở Media Library để chọn hoặc upload nhiều file, rồi bấm **Thêm mới** lưu cùng lúc; mỗi ảnh tạo một bản ghi, attachment trùng trong một lần chọn được gộp. Sửa để thay ảnh/chuyển Subcategory; xóa từng bản ghi hoặc đánh dấu các dòng rồi bấm **Xóa ảnh đã chọn**.
+
+Chọn tất cả chỉ áp dụng cho trang hiện tại. Xóa hàng loạt có xác nhận, nonce riêng và chỉ xóa bản ghi ảnh, không xóa attachment. Backend nhận tối đa 100 ID bản ghi mỗi lần; danh sách rỗng/sai hoặc có bản ghi đã mất sẽ báo lỗi và không xóa một phần. Thành công hiển thị số bản ghi đã thêm/xóa.
 
 Vị trí là số nguyên từ 0 đến 4294967295, mặc định 0. Số nhỏ trước; trùng vị trí dùng ID tăng dần. Subcategory sắp trong từng Category. Danh sách phân trang 20 mục; ảnh khách hàng sắp ID tăng dần. Không tự đánh lại vị trí khi sửa/xóa/chuyển cha.
 
@@ -26,7 +28,7 @@ Thời gian UTC. Option schema: `jw_eng_customer_images_db_version`. Activation 
 
 Deactivate giữ dữ liệu. **Uninstall xóa vĩnh viễn ba bảng và option phiên bản của plugin**, giữ nguyên Media Library, taxonomy và bảng legacy. Sao lưu trước khi uninstall nếu cần khôi phục.
 
-Chưa nhập dữ liệu cũ, chưa nối frontend, chưa thêm REST/shortcode/video. ID của plugin không phải taxonomy ID của theme. Giữ cấu trúc MVC và mọi method của boilerplate; các file sample/example hiện có không được đăng ký vào route.
+Chưa nhập dữ liệu cũ, chưa nối frontend, chưa thêm REST/shortcode. ID của plugin không phải taxonomy ID của theme. Giữ cấu trúc MVC và mọi method của boilerplate; các file sample/example hiện có không được đăng ký vào route.
 
 ## PHP API
 

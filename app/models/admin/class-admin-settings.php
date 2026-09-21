@@ -97,6 +97,11 @@ if ( ! class_exists( __NAMESPACE__ . '\\' . 'Admin_Settings' ) ) {
 		/** Ghi dữ liệu qua repository, giữ nguyên các method Settings của boilerplate. */
 		public function mutate( string $operation, string $entity, array $input, int $id ) {
 			$repository = new Repository();
+			if ( 'bulk_delete' === $operation ) {
+				return 'image' === $entity && 0 === $id
+					? $repository->bulk_delete_images( $input['image_record_ids'] ?? null )
+					: new \WP_Error( 'invalid_operation', __( 'Chỉ hỗ trợ xóa hàng loạt bản ghi ảnh.', 'jw-eng-customer-images' ) );
+			}
 			return 'delete' === $operation ? $repository->delete( $entity, $id ) : $repository->save( $entity, $input, $id );
 		}
 

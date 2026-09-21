@@ -45,7 +45,6 @@ function jw_eng_customer_images_requirements_checker() {
 	return $requirements_checker;
 }
 
-// Giữ callable của boilerplate; bootstrap nội bộ dùng prefix riêng để tránh xung đột.
 if ( ! function_exists( 'plugin_requirements_checker' ) ) {
 	function plugin_requirements_checker() {
 		return jw_eng_customer_images_requirements_checker();

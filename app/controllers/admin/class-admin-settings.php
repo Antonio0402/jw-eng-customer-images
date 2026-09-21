@@ -40,7 +40,7 @@ if ( ! class_exists( __NAMESPACE__ . '\\' . 'Admin_Settings' ) ) {
 		const SETTINGS_PAGE_SLUG = JW_Eng_Customer_Images::PLUGIN_ID;
 		const SUBCATEGORIES_PAGE_SLUG = JW_Eng_Customer_Images::PLUGIN_ID . '-subcategories';
 		const IMAGES_PAGE_SLUG = JW_Eng_Customer_Images::PLUGIN_ID . '-images';
-		const VIDEOS_PAGE_SLUG = JW_Eng_Customer_Images::PLUGIN_ID . '-videos';
+	// const VIDEOS_PAGE_SLUG = JW_Eng_Customer_Images::PLUGIN_ID . '-videos';
 
 		const SLUGS = array(
 			'category' => self::SETTINGS_PAGE_SLUG,
@@ -221,7 +221,7 @@ if ( ! class_exists( __NAMESPACE__ . '\\' . 'Admin_Settings' ) ) {
 			$id        = Repository::integer( $input['id'] ?? null );
 
 			$operation = $input['operation'] ?? null;
-			if ( ! is_string( $operation ) || ! in_array( $operation, array( 'save', 'delete' ), true ) || ! is_string( $entity ) || ! isset( self::SLUGS[ $entity ] ) || null === $id || ( 'delete' === $operation && 0 === $id ) ) {
+			if ( ! is_string( $operation ) || ! in_array( $operation, array( 'save', 'delete', 'bulk_delete' ), true ) || ! is_string( $entity ) || ! isset( self::SLUGS[ $entity ] ) || null === $id || ( 'delete' === $operation && 0 === $id ) || ( 'bulk_delete' === $operation && ( 'image' !== $entity || 0 !== $id ) ) ) {
 				wp_die( esc_html__( 'Yêu cầu không hợp lệ.', 'jw-eng-customer-images' ), '', array( 'response' => 400 ) );
 			}
 			$nonce = $input['_wpnonce'] ?? null;
@@ -246,9 +246,17 @@ if ( ! class_exists( __NAMESPACE__ . '\\' . 'Admin_Settings' ) ) {
 					}
 				}
 			}
+			$message = $failed ? $result->get_error_message() : __( 'Đã lưu thay đổi. File trong Media Library được giữ nguyên.', 'jw-eng-customer-images' );
+			if ( ! $failed && 'bulk_delete' === $operation ) {
+				/* translators: %d: Số bản ghi ảnh đã xóa. */
+				$message = sprintf( __( 'Đã xóa %d bản ghi ảnh. File trong Media Library được giữ nguyên.', 'jw-eng-customer-images' ), $result );
+			} elseif ( ! $failed && 'save' === $operation && 'image' === $entity && 0 === $id ) {
+				/* translators: %d: Số ảnh được thêm trong một lần lưu. */
+				$message = sprintf( __( 'Đã thêm %d ảnh khách hàng.', 'jw-eng-customer-images' ), count( $result ) );
+			}
 			set_transient( 'jw_eci_' . get_current_user_id() . '_' . $token, array(
 				'entity' => $entity, 'input' => $old,
-				'notice' => array( 'type' => $failed ? 'error' : 'success', 'message' => $failed ? $result->get_error_message() : __( 'Đã lưu thay đổi. File trong Media Library được giữ nguyên.', 'jw-eng-customer-images' ) ),
+				'notice' => array( 'type' => $failed ? 'error' : 'success', 'message' => $message ),
 			), 5 * MINUTE_IN_SECONDS );
 			$url = add_query_arg( array( 'page' => self::SLUGS[ $entity ], 'result' => $token ), admin_url( 'admin.php' ) );
 			if ( $failed && 0 < $id && 'save' === $operation ) {
@@ -342,9 +350,9 @@ if ( ! class_exists( __NAMESPACE__ . '\\' . 'Admin_Settings' ) ) {
 
 		/** Map entity sang page slug cố định. */
 		private function page_slug_for_entity( string $entity ): string {
-			if ( 'video' === $entity ) {
-				return self::VIDEOS_PAGE_SLUG;
-			}
+			// if ( 'video' === $entity ) {
+			// 	return self::VIDEOS_PAGE_SLUG;
+			// }
 			if ( 'subcategory' === $entity ) {
 				return self::SUBCATEGORIES_PAGE_SLUG;
 			}

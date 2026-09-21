@@ -49,17 +49,39 @@ document.addEventListener( 'click', ( event ) => {
 		return;
 	}
 
-	const confirmButton = event.target.closest( '[data-confirm]' );
+	const confirmButton = event.target.closest( 'button[data-confirm]' );
 	if ( confirmButton && ! window.confirm( confirmButton.dataset.confirm ) ) {
 		event.preventDefault();
 	}
 } );
 
-document.querySelector( '.jw-eng-ci-check-all' )?.addEventListener( 'change', ( event ) => {
-	document.querySelectorAll( 'input[name="image_ids[]"]' ).forEach( ( checkbox ) => {
+
+const bulkForm = document.getElementById( 'jw-eng-ci-bulk-delete' );
+const checkAll = document.querySelector( '.jw-eng-ci-check-all' );
+const imageCheckboxes = document.querySelectorAll( 'input[name="image_record_ids[]"][form="jw-eng-ci-bulk-delete"]' );
+const syncSelection = () => {
+	const selected = Array.from( imageCheckboxes ).filter( ( checkbox ) => checkbox.checked ).length;
+	if ( checkAll ) {
+		checkAll.checked = selected > 0 && selected === imageCheckboxes.length;
+		checkAll.indeterminate = selected > 0 && selected < imageCheckboxes.length;
+	}
+	if ( bulkForm ) {
+		bulkForm.querySelector( 'button[type="submit"]' ).disabled = selected === 0;
+	}
+};
+checkAll?.addEventListener( 'change', ( event ) => {
+	imageCheckboxes.forEach( ( checkbox ) => {
 		checkbox.checked = event.target.checked;
 	} );
+	syncSelection();
 } );
+imageCheckboxes.forEach( ( checkbox ) => checkbox.addEventListener( 'change', syncSelection ) );
+bulkForm?.addEventListener( 'submit', ( event ) => {
+	if ( ! Array.from( imageCheckboxes ).some( ( checkbox ) => checkbox.checked ) || ! window.confirm( bulkForm.dataset.confirm ) ) {
+		event.preventDefault();
+	}
+} );
+syncSelection();
 
 document.querySelector( '#jw-eng-ci-image-category-filter' )?.addEventListener( 'change', ( event ) => {
 	const categoryId = event.target.value;

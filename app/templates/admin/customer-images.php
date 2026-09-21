@@ -92,7 +92,7 @@ $image_field = static function ( string $field, string $label, int $value, bool 
 				<?php $image_field( 'image_id', __( 'Ảnh khách hàng', 'jw-eng-customer-images' ), (int) ( $form['image_id'] ?? 0 ), true ); ?>
 			<?php else : ?>
 				<tr><th><label for="jw-eng-ci-images-choose"><?php esc_html_e( 'Ảnh khách hàng', 'jw-eng-customer-images' ); ?> *</label></th><td>
-					<button id="jw-eng-ci-images-choose" type="button" class="button jw-eng-ci-media-multiple" data-preview="jw-eng-ci-multi-preview"><?php esc_html_e( 'Chọn nhiều ảnh', 'jw-eng-customer-images' ); ?></button>
+					<button id="jw-eng-ci-images-choose" type="button" class="button jw-eng-ci-media-multiple" data-preview="jw-eng-ci-multi-preview"><?php esc_html_e( 'Chọn/upload nhiều ảnh', 'jw-eng-customer-images' ); ?></button>
 					<p class="description"><?php esc_html_e( 'Mỗi ảnh đã ghép trước–sau sẽ tạo một bản ghi riêng.', 'jw-eng-customer-images' ); ?></p>
 					<div id="jw-eng-ci-multi-preview" class="jw-eng-ci-multi-preview" aria-live="polite">
 					<?php foreach ( $form['image_ids'] ?? array() as $selected_id ) : ?>
@@ -120,6 +120,7 @@ $image_field = static function ( string $field, string $label, int $value, bool 
 		</form>
 	<?php endif; ?>
 	<div class="jw-eng-ci-table-scroll"><table class="widefat striped jw-eng-ci-table"><thead><tr>
+		<?php if ( 'image' === $entity ) : ?><th scope="col" class="check-column"><input type="checkbox" class="jw-eng-ci-check-all" aria-label="<?php esc_attr_e( 'Chọn tất cả ảnh trên trang hiện tại', 'jw-eng-customer-images' ); ?>"></th><?php endif; ?>
 		<th scope="col">ID</th>
 		<?php if ( 'category' !== $entity ) : ?><th scope="col"><?php esc_html_e( 'Danh mục cha', 'jw-eng-customer-images' ); ?></th><?php endif; ?>
 		<?php if ( 'image' !== $entity ) : ?><th scope="col"><?php esc_html_e( 'Tên', 'jw-eng-customer-images' ); ?></th><th scope="col"><?php esc_html_e( 'Vị trí', 'jw-eng-customer-images' ); ?></th><?php endif; ?>
@@ -127,7 +128,11 @@ $image_field = static function ( string $field, string $label, int $value, bool 
 		<th scope="col"><?php esc_html_e( 'Thao tác', 'jw-eng-customer-images' ); ?></th>
 	</tr></thead><tbody>
 	<?php foreach ( $listing['items'] as $row ) : ?>
-		<tr><td><?php echo esc_html( $row['id'] ); ?></td>
+		<tr>
+		<?php if ( 'image' === $entity ) : ?>
+			<th scope="row" class="check-column"><input type="checkbox" form="jw-eng-ci-bulk-delete" name="image_record_ids[]" value="<?php echo esc_attr( $row['id'] ); ?>" aria-label="<?php /* translators: %d: ID bản ghi ảnh. */ echo esc_attr( sprintf( __( 'Chọn ảnh %d', 'jw-eng-customer-images' ), $row['id'] ) ); ?>"></th>
+		<?php endif; ?>
+		<td><?php echo esc_html( $row['id'] ); ?></td>
 		<?php if ( 'category' !== $entity ) : ?><td><?php echo esc_html( 'subcategory' === $entity ? ( $category_names[ $row['category_id'] ] ?? '' ) : ( $sub_names[ $row['subcategory_id'] ] ?? '' ) ); ?></td><?php endif; ?>
 		<?php if ( 'image' !== $entity ) : ?><td><?php echo esc_html( $row['name'] ); ?></td><td><?php echo esc_html( $row['position'] ); ?></td><?php endif; ?>
 		<?php foreach ( 'category' === $entity ? array_keys( $media_labels ) : array( 'image_id' ) as $field ) : ?><td><?php $preview( (int) $row[ $field ] ); ?></td><?php endforeach; ?>
@@ -136,6 +141,13 @@ $image_field = static function ( string $field, string $label, int $value, bool 
 	<?php endforeach; ?>
 	<?php if ( ! $listing['items'] ) : ?><tr><td colspan="8"><?php esc_html_e( 'Chưa có dữ liệu.', 'jw-eng-customer-images' ); ?></td></tr><?php endif; ?>
 	</tbody></table></div>
+	<?php if ( 'image' === $entity && $listing['items'] ) : ?>
+		<form id="jw-eng-ci-bulk-delete" class="jw-eng-ci-bulk" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" data-confirm="<?php esc_attr_e( 'Xóa tất cả bản ghi ảnh đã chọn? File trong Media Library vẫn được giữ lại.', 'jw-eng-customer-images' ); ?>">
+			<?php $nonce_fields( 'bulk_delete', 'image', 0 ); ?>
+			<button type="submit" class="button button-link-delete"><?php esc_html_e( 'Xóa ảnh đã chọn', 'jw-eng-customer-images' ); ?></button>
+			<p class="description"><?php esc_html_e( 'Chọn tất cả chỉ áp dụng cho trang hiện tại.', 'jw-eng-customer-images' ); ?></p>
+		</form>
+	<?php endif; ?>
 	<?php
 	$pagination_base = add_query_arg( array( 'page' => $slugs[ $entity ], 'category_id' => $category_filter, 'subcategory_id' => $subcategory_filter, 'paged' => 999999999 ), admin_url( 'admin.php' ) );
 	echo wp_kses_post( paginate_links( array(
