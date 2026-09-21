@@ -84,6 +84,7 @@ if ( ! class_exists( 'JW_Eng_Customer_Images' ) ) {
 
 			$this->autoload_dependencies();
 			$this->set_locale();
+			$this->get_api();
 
 			if ( false !== $router_class_name && false !== $routes ) {
 				$this->init_router( $router_class_name, $routes );
@@ -195,6 +196,10 @@ if ( ! class_exists( 'JW_Eng_Customer_Images' ) ) {
 		 */
 		public static function get_setting( $setting_name ) {
 			return Settings::get_setting( $setting_name );
+		}
+
+		private function get_api() {
+			require_once self::get_plugin_path() . '/includes/api.php';
 		}
 	}
 

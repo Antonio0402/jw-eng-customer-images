@@ -1,0 +1,34 @@
+{
+  "name": "jw-eng-customer-images",
+  "version": "1.0.0",
+  "description": "A Wordpress plugin for manage the data of before-after images which distributed by category/subcategory to display on certain page",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "files": [
+    "app/**",
+    "assets/**",
+    "config/**",
+    "core/**",
+    "includes/**",
+    "languages/**",
+    "index.php",
+    "jw-eng-customer-images.php",
+    "requirements-config.php",
+    "routes.php",
+    "uninstall.php",
+    "LICENSE.txt",
+    "README.txt"
+  ],
+  "scripts": {
+    "plugin-zip": "wp-scripts plugin-zip --root-folder=jw-eng-customer-images",
+    "dist": "npm run plugin-zip",
+    "lint:pkg-json": "wp-scripts lint-pkg-json"
+  },
+  "author": "JW",
+  "license": "GPL-2.0-or-later",
+  "dependencies": {
+    "@wordpress/scripts": "^32.2.0"
+  }
+}

@@ -1,6 +1,8 @@
 <?php
 namespace JW_Eng_Customer_Images\App;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Fired during plugin activation.
  *
@@ -21,6 +23,10 @@ class Activator {
 	 * @since    1.0.0
 	 */
 	public function activate() {
+		$result = Database::install();
+		if ( is_wp_error( $result ) ) {
+			wp_die( esc_html( $result->get_error_message() ) );
+		}
 	}
 
 }
