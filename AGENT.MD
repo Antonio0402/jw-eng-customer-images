@@ -1,6 +1,6 @@
 # JW Eng Customer Images
 
-- Phạm vi: plugin độc lập, không sửa theme `jw-eng`, taxonomy hoặc bảng ảnh legacy.
+- Phạm vi: plugin sở hữu dữ liệu; theme `jw-eng` đọc qua PHP API gallery. Không sửa taxonomy hoặc bảng ảnh legacy.
 - Giữ các method/function của boilerplate. Chỉ bổ sung hoặc sửa thân hàm; không thay toàn bộ MVC bằng một admin class mới.
 - Luồng quản trị: `routes.php` → Controller `Admin_Settings` → Model `Admin_Settings` → Repository → View → `app/templates/admin/customer-images.php`.
 - Form POST dùng action `jw_eng_ci_admin_action`, `operation=save|delete|bulk_delete`, entity `category|subcategory|image`; quyền `manage_options`, nonce theo thao tác/entity/ID.
@@ -12,3 +12,5 @@
 - `tests/integration.php` chỉ chạy CLI với WordPress core và MySQL tạm port 13377; không đọc wp-config.php. Runtime phải ở Temp; database thử có tên ngẫu nhiên và tự xóa sau test.
 - Hợp đồng API, schema và cách kiểm thử: `docs/customer-images.md`. Lint PHP, `node --check` và kiểm tra diff trước bàn giao; kiểm tra UI trình duyệt được báo riêng.
 - Không stage/commit hoặc kích hoạt plugin trên database website nếu chưa được yêu cầu. Giữ nguyên file mẫu người dùng; chúng không thuộc route runtime.
+
+- Gallery frontend: `jw_eng_customer_images_get_gallery( $category_id )` trả Subcategory kèm `images`; ID plugin độc lập taxonomy. Theme ánh xạ tên duy nhất, render/tải thêm riêng từng nhóm. Xem `docs/customer-images.md`.

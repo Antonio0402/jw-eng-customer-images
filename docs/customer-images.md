@@ -28,7 +28,7 @@ Thời gian UTC. Option schema: `jw_eng_customer_images_db_version`. Activation 
 
 Deactivate giữ dữ liệu. **Uninstall xóa vĩnh viễn ba bảng và option phiên bản của plugin**, giữ nguyên Media Library, taxonomy và bảng legacy. Sao lưu trước khi uninstall nếu cần khôi phục.
 
-Chưa nhập dữ liệu cũ, chưa nối frontend, chưa thêm REST/shortcode. ID của plugin không phải taxonomy ID của theme. Giữ cấu trúc MVC và mọi method của boilerplate; các file sample/example hiện có không được đăng ký vào route.
+Chưa nhập dữ liệu cũ; theme jw-eng đọc gallery qua PHP API, chưa thêm REST/shortcode. ID của plugin không phải taxonomy ID của theme. Giữ cấu trúc MVC và mọi method của boilerplate; các file sample/example hiện có không được đăng ký vào route.
 
 ## PHP API
 
@@ -65,3 +65,11 @@ php tests/integration.php D:/laragon/www/jwhospital C:/Users/BENHVIENJW/AppData/
 Script tạo database tên `jw_eci_test_<random>`, chạy kiểm tra rồi xóa database đó kể cả khi lỗi. Bao phủ schema lặp, CRUD, vị trí, validation, API, rollback bằng lỗi SQL chủ động, menu/render, quyền/nonce, POST, khóa giữa hai kết nối, giữ attachment và uninstall giới hạn đúng bảng. Sau test dừng daemon MySQL thử nghiệm.
 
 Kiểm thử trình duyệt riêng: mở ba màn hình, chọn/thay/bỏ ảnh, mở lại lựa chọn nhiều ảnh, lọc/phân trang, xác nhận xóa và kiểm tra thông báo lỗi. Lint/integration không thay thế việc kiểm tra tương tác Media Library trong trình duyệt.
+
+## Tích hợp gallery theme jw-eng
+
+`jw_eng_customer_images_get_gallery( $category_id )` nhận ID Category của plugin và trả các Subcategory theo `position ASC, id ASC`, mỗi nhóm bổ sung `images` chứa toàn bộ Image theo ID tăng dần. Một truy vấn ảnh theo Category, không query theo từng Subcategory. Nhóm không có ảnh vẫn được trả; ảnh mất URL bị bỏ qua. ID sai/không tồn tại hoặc lỗi đọc trả mảng rỗng.
+
+Theme giữ ID taxonomy cho menu/URL và tìm Category plugin có tên trùng (bỏ khoảng trắng hai đầu, không phân biệt hoa/thường). Tên phải khớp duy nhất; không có hoặc trùng nhiều Category thì gallery rỗng. Không coi ID taxonomy là ID plugin. Plugin cần được kích hoạt; không có API thì theme hiển thị trạng thái rỗng, không đọc bảng legacy.
+
+Mỗi Subcategory hiển thị tên, mô tả văn bản thuần và `.bvjw_before_after_imges_content_row` riêng. Tải thêm 10 ảnh độc lập từng nhóm; không JS thì hiện toàn bộ ảnh lazy-load. Không di chuyển/xóa dữ liệu bảng cũ.

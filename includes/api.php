@@ -4,6 +4,40 @@ defined( 'ABSPATH' ) || exit;
 
 use JW_Eng_Customer_Images\App\Repository;
 
+/**
+ * Lấy toàn bộ gallery một Category, chia theo Subcategory đã sắp xếp.
+ * Giữ dữ liệu đầy đủ cho frontend tải thêm phía trình duyệt và khi tắt JS.
+ *
+ * @param int $category_id ID Category của plugin, không phải taxonomy ID.
+ * @return array<int, array<string, mixed>>
+ */
+function jw_eng_customer_images_get_gallery( int $category_id ): array {
+	if ( 1 > $category_id ) {
+		return array();
+	}
+	$category = jw_eng_customer_images_get( $category_id );
+	if ( ! $category || ! $category['subcategories'] ) {
+		return array();
+	}
+	$images = ( new Repository() )->listing( 'image', $category_id, 0, 1, null );
+	if ( is_wp_error( $images ) ) {
+		return array();
+	}
+	$grouped = array();
+	foreach ( $images as $row ) {
+		$image = Repository::present( 'image', $row );
+		if ( '' !== $image['image_url'] ) {
+			$grouped[ $image['subcategory_id'] ][] = $image;
+		}
+	}
+	$result = array();
+	foreach ( $category['subcategories'] as $subcategory ) {
+		$subcategory['images'] = $grouped[ $subcategory['id'] ] ?? array();
+		$result[] = $subcategory;
+	}
+	return $result;
+}
+
 function jw_eng_customer_images_get_all(): array {
 	return jw_eng_customer_images_get_tree();
 }
