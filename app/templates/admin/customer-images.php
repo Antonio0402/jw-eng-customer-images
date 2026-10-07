@@ -87,7 +87,7 @@ $image_field = static function ( string $field, string $label, int $value, bool 
 				<?php foreach ( $media_labels as $field => $label ) { $image_field( $field, $label, (int) ( $form[ $field ] ?? 0 ) ); } ?>
 			<?php elseif ( 'subcategory' === $entity ) : ?>
 				<tr><th><label for="jw-eng-ci-description"><?php esc_html_e( 'Mô tả', 'jw-eng-customer-images' ); ?> *</label></th><td><textarea class="large-text" id="jw-eng-ci-description" name="description" rows="5" required><?php echo esc_textarea( $form['description'] ?? '' ); ?></textarea></td></tr>
-				<?php $image_field( 'image_id', __( 'Ảnh đại diện', 'jw-eng-customer-images' ), (int) ( $form['image_id'] ?? 0 ), true ); ?>
+				<?php $image_field( 'image_id', __( 'Ảnh đại diện', 'jw-eng-customer-images' ), (int) ( $form['image_id'] ?? 0 ), false ); ?>
 			<?php elseif ( $edit_id ) : ?>
 				<?php $image_field( 'image_id', __( 'Ảnh khách hàng', 'jw-eng-customer-images' ), (int) ( $form['image_id'] ?? 0 ), true ); ?>
 			<?php else : ?>
