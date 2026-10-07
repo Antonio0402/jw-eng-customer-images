@@ -138,14 +138,18 @@ class Repository {
 					return $this->invalid();
 				}
 			}
-			$ids = 'image' === $entity && 0 === $id ? ( $input['image_ids'] ?? null ) : array( $input['image_id'] ?? null );
+			$image_value = $input['image_id'] ?? ( 'subcategory' === $entity ? '0' : null );
+			if ( 'subcategory' === $entity && '' === $image_value ) {
+				$image_value = '0';
+			}
+			$ids = 'image' === $entity && 0 === $id ? ( $input['image_ids'] ?? null ) : array( $image_value );
 			if ( ! is_array( $ids ) || ! $ids ) {
 				return $this->invalid();
 			}
 			$validated = array();
 			foreach ( $ids as $value ) {
 				$image_id = self::integer( $value );
-				if ( ! $image_id || ! $this->valid_image( $image_id ) ) {
+				if ( null === $image_id || ( 0 === $image_id && 'subcategory' !== $entity ) || ( 0 < $image_id && ! $this->valid_image( $image_id ) ) ) {
 					return $this->invalid();
 				}
 				$validated[] = $image_id;
